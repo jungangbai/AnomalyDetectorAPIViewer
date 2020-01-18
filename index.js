@@ -275,9 +275,9 @@ app.post("/api/anomaly/buildbody", function(req, res, next){
       case 2:
         console.log("reading data from test.csv");
         var data = read(__dirname + '/public/test.csv');
-        series = csvSync(data,{columns: true}).filter(function(element, index, array) {
+        series = csvSync(data,{columns: true}); /*.filter(function(element, index, array) {
           return (element.deviceid == 'tosumi-dev1');
-        });
+        });*/
         break;
       case 3:
         console.log("reading from Request Body");
