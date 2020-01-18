@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js"></script>
+    <script type="text/javascript">
+      var csvData = new FileReader();
+
+      // (Anomlay Detector) APIの呼び出し
+      function sendRequest() {
+        var requestURL = document.getElementById("span2").textContent;
+        var apikey = document.getElementById("span3").textContent;
+        var requestBody = JSON.parse(document.form1.textarea1.innerHTML);
+
+        $.ajax({
+            url: requestURL,
+            beforeSend: function(xhrObj){
+                // Request headers
+                xhrObj.setRequestHeader("Content-Type","application/json");
+                xhrObj.setRequestHeader("Ocp-Apim-Subscription-Key",apikey);
+            },
+            type: "POST",
+            dataType: "json",
+            // Request body
+            data: JSON.stringify(requestBody),
+        })
+        .done(function(data) {
+            document.form1.textarea2.innerHTML=JSON.stringify(data);
+            updateChart();
+        })
+        .fail(function(jqXHR, textStatus, errorThrown) {
+            document.form1.textarea2.innerHTML="error: (" + jqXHR.status + ")";
+        });
+      }
+
+　　　　　// 各種パラメータとデータセットから
+      // リクエスト(JSON) を作成する APIを呼び出す
+      function buildDataset(){
+        var endpoint1 = document.getElementById("input1").value;
+        var apikey= document.getElementById("input2").value;
+        var requestURL = endpoint1 + "anomalydetector/v1.0/timeseries/entire/detect";
+        var requestBody= JSON.parse(document.form1.textarea1.innerHTML);
+        var series= requestBody.series;
+        var granularity=requestBody.granularity;
+        var sensitivity=requestBody.sensitivity;
+        var maxAnomalyRatio=requestBody.maxAnomalyRatio;
+	document.getElementById("span2").textContent=requestURL;
+        document.getElementById("span3").textContent=apikey;
+
+        var xhr = new XMLHttpRequest();
+        var url = "/api/anomaly/buildbody/";
+        var options = document.getElementsByName("rdDataset");
+        var bodyId = 1;
+        for (var i = 0; i< options.length; i++) {
+          if (options[i].checked) {
+            bodyId = i+1;
+          }
+        }
+        var param = "?"
+                   +"grn=" + document.getElementById("input3").value+"&"
+                   +"sns=" + document.getElementById("input4").value+"&"
+                   +"mar=" + document.getElementById("input5").value+"&"
+                   +"prd=" + document.getElementById("input6").value+"&"
+                   +"int=" + document.getElementById("input7").value+"&"
+                   +"bdy=" + bodyId;
+        xhr.open("POST",url+param);
+	xhr.onreadystatechange = () => {
+            if (xhr.readyState == 4 && xhr.status == 200) {
+                var ta1 = document.form1.textarea1;
+	        ta1.innerHTML = xhr.responseText;
+	    }
+	}
+        if (bodyId == 3) {
+          xhr.send(csvData.result);
+        } else {
+          xhr.send();
+        }
+
+      }
+
+      // CSV ファイルの読み込み（同期）
+      function getCSV() {
+        var fileRef= document.getElementById("inputfile");
+        var outFrame= document.form1.textarea2;
+
+        if (1 <= fileRef.files.length) {
+            csvData.onload = function (theFile) {
+            var outhtml = theFile.target.result;
+            outFrame.innerHTML = outhtml;
+          }
+          csvData.readAsText(fileRef.files[0], "shift-jis");
+        }
+      }
+
+      // 折れ線グラフ描画のためのパラメータ
+      var graph = {
+              //データ項目のラベル
+              labels: [], // Labels (timestamp),
+              //データセット
+              datasets: [
+                  {
+                      //凡例
+                      label: "Value",
+                      //面の表示
+                      fill: false,
+                      //線のカーブ
+                      lineTension: 0,
+                      //背景色
+                      backgroundColor: "rgba(179,181,198,0.2)",
+                      //枠線の色
+                      borderColor: "rgba(179,181,198,1)",
+                      //結合点の枠線の色
+                      pointBorderColor: "rgba(179,181,198,1)",
+                      //結合点の背景色
+                      pointBackgroundColor: "#fff",
+                      //結合点のサイズ
+                      pointRadius: 5,
+                      //結合点のサイズ（ホバーしたとき）
+                      pointHoverRadius: 8,
+                      //結合点の背景色（ホバーしたとき）
+                      pointHoverBackgroundColor: "rgba(179,181,198,1)",
+                      //結合点の枠線の色（ホバーしたとき）
+                      pointHoverBorderColor: "rgba(220,220,220,1)",
+                      //結合点より外でマウスホバーを認識する範囲（ピクセル単位）
+                      pointHitRadius: 15,
+                      //グラフのデータ
+                      data: [] //Values
+                  },
+                  {
+                      //凡例
+                      label: "ExpectedValue",
+                      //面の表示
+                      fill: false,
+                      //線のカーブ
+                      lineTension: 0,
+                      //背景色
+                      backgroundColor: "rgba(75,192,192,0.4)",
+                      //枠線の色
+                      borderColor: "rgba(75,192,192,1)",
+                      //破線の間隔
+                      borderDash: [8, 2],
+                      //結合点の枠線の色
+                      pointBorderColor: "rgba(75,192,192,1)",
+                      //結合点の背景色
+                      pointBackgroundColor: "#fff",
+                      //結合点のサイズ
+                      pointRadius: 0,
+                      //結合点のサイズ（ホバーしたとき）
+                      pointHoverRadius: 8,
+                      //結合点の背景色（ホバーしたとき）
+                      pointHoverBackgroundColor: "rgba(75,192,192,1)",
+                      //結合点の枠線の色（ホバーしたとき）
+                      pointHoverBorderColor: "rgba(220,220,220,1)",
+                      //結合点より外でマウスホバーを認識する範囲（ピクセル単位）
+                      pointHitRadius: 10,
+                      //グラフのデータ
+                      data: [] //tsobj2.expectedValues
+                  },
+                  {
+                      //凡例
+                      label: "UpperMergine",
+                      //面の表示
+                      fill: false,
+                      //線のカーブ
+                      lineTension: 0,
+                      //背景色
+                      backgroundColor: "rgba(155,155,220,0.4)",
+                      //枠線の色
+                      borderColor: "rgba(155,155,220,1)",
+                      //結合点の枠線の色
+                      pointBorderColor: "rgba(155,155,220,1)",
+                      //結合点の背景色
+                      pointBackgroundColor: "#fff",
+                      //結合点のサイズ
+                      pointRadius: 0,
+                      //結合点のサイズ（ホバーしたとき）
+                      pointHoverRadius: 8,
+                      //結合点の背景色（ホバーしたとき）
+                      pointHoverBackgroundColor: "rgba(155,155,220,1)",
+                      //結合点の枠線の色（ホバーしたとき）
+                      pointHoverBorderColor: "rgba(220,220,220,1)",
+                      //結合点より外でマウスホバーを認識する範囲（ピクセル単位）
+                      pointHitRadius: 10,
+                      //グラフのデータ
+                      data: []
+                  },
+                  {
+                      //凡例
+                      label: "LowerMergine",
+                      //面の表示
+                      fill: '-1',
+                      //線のカーブ
+                      lineTension: 0,
+                      //背景色
+                      backgroundColor: "rgba(155,155,220,0.4)",
+                      //枠線の色
+                      borderColor: "rgba(155,155,220,1)",
+                      //結合点の枠線の色
+                      pointBorderColor: "rgba(155,155,220,1)",
+                      //結合点の背景色
+                      pointBackgroundColor: "#fff",
+                      //結合点のサイズ
+                      pointRadius: 0,
+                      //結合点のサイズ（ホバーしたとき）
+                      pointHoverRadius: 8,
+                      //結合点の背景色（ホバーしたとき）
+                      pointHoverBackgroundColor: "rgba(155,155,220,1)",
+                      //結合点の枠線の色（ホバーしたとき）
+                      pointHoverBorderColor: "rgba(220,220,220,1)",
+                      //結合点より外でマウスホバーを認識する範囲（ピクセル単位）
+                      pointHitRadius: 10,
+                      //グラフのデータ
+                      data: []
+                  }
+              ]
+          };
+
+      // 折れ線グラフ描画のためのオプション
+      var options = {
+              //軸の設定
+              scales: {
+                  //縦軸の設定
+                  yAxes: [{
+                      //目盛りの設定
+                      ticks: {
+                          //最小値を0にする
+                          beginAtZero: true
+                      }
+                  }]
+              },
+              //ホバーの設定
+              hover: {
+                  //ホバー時の動作（single, label, dataset）
+                  mode: 'single'
+              },
+              //縦線の設定
+              lineAtIndex: []
+          };
+
+      var myLineChart = new Chart();
+      myLineChart.detroy();
+
+      //折れ線グラフの描画（1回のみ）
+      function renderChart() {
+          Chart.plugins.register({
+              beforeDraw: function(c) {
+                  var ctx = c.chart.ctx;
+                  ctx.fillStyle = "rgba(255, 255, 255, 1)";
+                  ctx.fillRect(0, 0, c.chart.width, c.chart.height);
+              },
+              afterDraw: function(c) {
+                  // キャンパスに直接縦線を描く
+                  var ctx = c.chart.ctx;
+                  if (options.lineAtIndex.length){
+                    for(i in options.lineAtIndex){
+                      var xaxis = c.chart.scales['x-axis-0'];
+                      var yaxis = c.chart.scales['y-axis-0'];
+
+                      ctx.lineWidth = 1;
+                      ctx.strokeStyle = '#ff4040';
+
+                      ctx.beginPath();
+                      ctx.moveTo(xaxis.getPixelForValue(undefined, options.lineAtIndex[i]), yaxis.top);
+                      ctx.lineTo(xaxis.getPixelForValue(undefined, options.lineAtIndex[i]), yaxis.bottom);
+                      ctx.stroke();
+                    }
+                  }
+              }
+          });
+
+          var canvas= document.getElementById("myLineChart");
+          var ctx = canvas.getContext('2d');
+          myLineChart = new Chart(ctx, {
+            type: 'line',
+            data: graph,
+            options: options
+          });
+
+      }
+
+　　　　　// 更新されたパラメータを基に
+      // 折れ線グラフの(再）描画
+      function updateChart(){
+        var tsobj = JSON.parse(document.form1.textarea1.innerHTML);
+        var tsobj2 = JSON.parse(document.form1.textarea2.innerHTML);
+        var Labels = tsobj.series.map(e => e.timestamp);
+        var Values = tsobj.series.map(e => e.value);
+        var UpperM = tsobj2.upperMargins;
+        var LowerM = tsobj2.lowerMargins;
+        var Colors = tsobj2.isAnomaly;
+        // ExpectedValue からの相対値を絶対値に変換
+        for (var i=0; i<UpperM.length;i++) {
+          UpperM[i] = tsobj2.expectedValues[i] + tsobj2.upperMargins[i];
+          LowerM[i] = tsobj2.expectedValues[i] - tsobj2.lowerMargins[i];
+        };
+        // IsAnomaly=true の箇所のみ節点の色を変える
+        for (var i=0; i<Values.length;i++) {
+          Colors[i] = (tsobj2.isAnomaly[i])?  "#f00": "#fff";
+        };
+
+        //データをセット
+        graph.labels = Labels;
+        graph.datasets[0].data = Values;
+        graph.datasets[0].pointBackgroundColor = Colors;
+        graph.datasets[1].data = tsobj2.expectedValues;
+        graph.datasets[2].data = UpperM;
+        graph.datasets[3].data = LowerM;
+
+        options.lineAtIndex=[];
+        if (tsobj2.period > 1) {
+          var idx=0;
+          for (var i=tsobj2.period; i<Values.length;i+=tsobj2.period) {
+            options.lineAtIndex[idx++]=i;
+          }
+        }
+
+        // グラフの再描画
+        myLineChart.update();
+      }
+
+
+    </script>
+  </head>
+  <body>
+    <h1> Anomaly Detector API DEMO </h1>
+    <table>
+      <tr>
+        <th>API Endpoint</th>
+        <th>API Access key</th>
+        <th>Data Sets</th>
+      </tr>
+      <tr>
+<!--
+        <td>
+          <input type="text" id="input1"
+            value="https://westus2.api.cognitive.microsoft.com"/>
+        </td>
+-->
+        <td>
+          <input type="text" id="input1"
+            value="https://tosumi-adaccount.cognitiveservices.azure.com/"/>
+        </td>
+<!--
+        <td>
+          <input type="text" id="input2" name="input2"
+            value="{input your access key}"/>
+        </td>
+-->
+        <td>
+          <input type="text" id="input2" name="input2"
+            value="551e797ae8c9454a8d15647fee2eba66"/>
+        </td>
+        <td>
+          <label><input type="radio" name="rdDataset" value="sample1" checked/>Sample1</label>
+          <label><input type="radio" name="rdDataset" value="sample2"/>Sample2</label>
+          <label><input type="radio" name="rdDataset" value="file"/>File:
+             <input type="file" id="inputfile" accept=".csv,text/comma-separated-values" onChange="getCSV()"/>
+          </label>
+        </td>
+      </tr>
+      <tr>
+        <td>Method:
+          <label><input type="radio" name="rdMethod" value="last"/>Last</label>
+          <label><input type="radio" name="rdMethod" value="entire" checked/>Entire</label>
+        </td>
+        <td>Granularity: 
+          <input type="text" id="input3" value="monthly" name="input3" list="granularity"/>
+          <datalist id="granularity">
+            <option value="minutely"></option>
+            <option value="hourly"></option>
+            <option value="daily"></option>
+            <option value="weekly"></option>
+            <option value="monthly"></option>
+            <option value="yearly"></option>
+          </datalist>
+        </td>
+        <td>Sensitivity:
+          <input type="range" id="input4" value="95" name="input4" min="70" max="99"/>
+          <span id="span4">95</span>
+        </td>
+      </tr>
+      <tr>
+        <td>Period: 
+           <input type="number" id="input6" value="0" name="input6"/>
+        </td>
+        <td>Custom Interval: 
+           <input type="number" id="input7" value="1" name="input7"/>
+        </td>
+        <td>Max Anomaly Ratio:
+          <input type="number" id="input5" value="0.25" name="input5"/>
+        </td>
+      </tr>
+    </table>
+    <p>
+      <input type="button" id="btn" value="build Dataset"
+        onclick="buildDataset()"/>
+      <input type="button" id="btn2" value="submit"
+        onclick="sendRequest()"/>
+    <p>
+    <p>URL: <span id="span2"></span></p>
+    <p hidden>AccessKey: <span id="span3"></span></p>
+    <canvas id="myLineChart" width="800" height="400"></canvas>
+    <form name="form1">
+    <textarea name="textarea1" value="1" cols="50" rows=5>Original Data</textarea>
+    <textarea name="textarea2" value="1" cols="50" rows=5>Response Data</textarea>
+    </form>
+
+    <script> renderChart();</script>
+
+    <script>
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST","/api/anomaly/initbody");
+    xhr.addEventListener("load", function(e){
+        var requestBody = JSON.parse(xhr.responseText);
+	var ta1 = document.form1.textarea1;
+	ta1.innerHTML = xhr.responseText;
+        console.log(requestBody);
+    });
+    xhr.send();
+    </script>
+
+    <script>
+      var elem = document.getElementById('input4');
+      var target = document.getElementById('span4');
+      var rangeValue = function (elem, target) {
+        return function(evt){
+          target.innerHTML = elem.value;
+        }
+      }
+      elem.addEventListener('input', rangeValue(elem, target));
+    </script>
+  </body>
+</html>
