@@ -1,28 +1,26 @@
 # AnomalyDetectorAPIViewer
 Azure Cognitive Service (Anomaly Detector) API sample and viewer
 
-prerequites:
+prerequites:  
 Azure Anomaly Detector API account & API key
 
-preparation:
-npm init
-npm install express --save
-npm install ejs --save
-npm csv --save
-npm chart.js --save
+preparation:  
+npm init  
+npm install express --save  
+npm install ejs --save  
+npm csv --save  
+npm chart.js --save  
 
-invoke:
+invoke:  
 node index.js
 
-browse charts in you browser:
+browse charts in you browser:  
 http://localhost:3000/
 
-input your API endpoint and access key copied from Azure portal.
-selet data sets from ...
-Sample1 (Monthly data sample)
-Sample2 (Daily data sample)
+input your API endpoint and access key copied from Azure portal.  
+selet data sets from ...  
+Sample1 (Monthly data sample)  
+Sample2 (Daily data sample)  
 
-push build button to build a request body
+push build button to build a request body  
 push submit button to send a request to API endpoint
-
-
