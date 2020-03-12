@@ -8,8 +8,8 @@ preparation:
 npm init  
 npm install express --save  
 npm install ejs --save  
-npm csv --save  
-npm chart.js --save  
+npm install csv --save  
+npm install chart.js --save  
 
 invoke:  
 node index.js
