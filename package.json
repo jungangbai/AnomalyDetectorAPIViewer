@@ -1,0 +1,28 @@
+{
+  "name": "anomalydetectorapiviewer",
+  "version": "1.0.0",
+  "description": "Azure Anomaly Detector API viewer",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TOSUMI-MS/AnomalyDetectorAPIViewer.git"
+  },
+  "keywords": [
+    "tosumi"
+  ],
+  "author": "Tomoyuki Sumi",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/TOSUMI-MS/AnomalyDetectorAPIViewer/issues"
+  },
+  "homepage": "https://github.com/TOSUMI-MS/AnomalyDetectorAPIViewer#readme",
+  "dependencies": {
+    "chart.js": "^2.9.3",
+    "csv": "^5.3.2",
+    "ejs": "^3.1.3",
+    "express": "^4.17.1"
+  }
+}
