@@ -5,18 +5,17 @@ prerequites:
 Azure Anomaly Detector API account & API key
 
 preparation:  
-npm init  
-npm install express --save  
-npm install ejs --save  
-npm install csv --save  
-npm install chart.js --save  
-
+Node.js  
+Azure Cognitive Service account (API endpoint and Key).  
+(To get account, visit to https://docs.microsoft.com/en-us/azure/cognitive-services/cognitive-services-apis-create-account?tabs=multiservice%2Cwindows)  
+  
 invoke:  
 node index.js
-
+  
 browse charts in you browser:  
 http://localhost:3000/
-
+  
+  
 input your API endpoint and access key copied from Azure portal.  
 selet data sets from ...  
 Sample1 (Monthly data sample)  
